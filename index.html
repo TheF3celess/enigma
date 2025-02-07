@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Enigma Machine</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        :root {
+            --bg-color: #0a0e17;
+            --text-color: #00ff00;
+            --accent-color: #ff00ff;
+            --secondary-color: #0066cc;
+            --nav-bg-color: #0d1117;
+            --footer-bg-color: #0d1117;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex-grow: 1;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px var(--text-color);
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px var(--text-color), 0 0 10px var(--text-color);
+            }
+            to {
+                text-shadow: 0 0 10px var(--text-color), 0 0 20px var(--text-color), 0 0 30px var(--text-color);
+            }
+        }
+
+        .input-group, .output-group {
+            margin-bottom: 2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        textarea, .output {
+            width: 100%;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--text-color);
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 100px;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        .output {
+            min-height: 50px;
+            word-break: break-all;
+        }
+
+        button {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 0.5rem 1rem;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background-color: var(--nav-bg-color);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .nav-logo {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-logo svg {
+            margin-right: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        /* Footer Styles */
+        .footer {
+            background-color: var(--footer-bg-color);
+            color: var(--text-color);
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 -2px 10px rgba(0, 255, 0, 0.1);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .footer-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-container, .nav-links {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .nav-links {
+                margin-top: 1rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                </svg>
+                Enigma
+            </a>
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#">About</a>
+                <a href="#">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>The Enigma Machine</h1>
+        
+        <div class="input-group">
+            <label for="message">Enter your message:</label>
+            <textarea id="message" rows="5" placeholder="Type your secret message here..."></textarea>
+        </div>
+        
+        <div class="button-group">
+            <button id="encryptBtn">Encrypt</button>
+            <button id="copyEncrypted" class="hidden">Copy Encrypted</button>
+            <button id="shareBtn" class="hidden">Share</button>
+        </div>
+        
+        <div class="output-group hidden" id="encryptedOutput">
+            <label>Encrypted message:</label>
+            <div class="output" id="encryptedText"></div>
+        </div>
+        
+        <div class="output-group hidden" id="keyOutput">
+            <label>Decryption key:</label>
+            <div class="output" id="decryptionKey"></div>
+            <button id="copyKey" class="hidden">Copy Key</button>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">FAQ</a>
+            </div>
+            <p class="footer-text">&copy; 2023 The Enigma Machine. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const message = document.getElementById('message');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const copyEncrypted = document.getElementById('copyEncrypted');
+        const shareBtn = document.getElementById('shareBtn');
+        const encryptedOutput = document.getElementById('encryptedOutput');
+        const encryptedText = document.getElementById('encryptedText');
+        const keyOutput = document.getElementById('keyOutput');
+        const decryptionKey = document.getElementById('decryptionKey');
+        const copyKey = document.getElementById('copyKey');
+
+        const unicodeRanges = [
+            [0x0370, 0x03FF],  // Greek and Coptic
+            [0x0400, 0x04FF],  // Cyrillic
+            [0x0500, 0x052F],  // Cyrillic Supplement
+            [0x2000, 0x206F],  // General Punctuation
+            [0x2100, 0x214F],  // Letterlike Symbols
+            [0x2190, 0x21FF],  // Arrows
+            [0x2200, 0x22FF],  // Mathematical Operators
+            [0x2300, 0x23FF],  // Miscellaneous Technical
+            [0x2400, 0x243F],  // Control Pictures
+            [0x2440, 0x245F],  // Optical Character Recognition
+            [0x2460, 0x24FF],  // Enclosed Alphanumerics
+            [0x2500, 0x257F],  // Box Drawing
+            [0x2580, 0x259F],  // Block Elements
+            [0x25A0, 0x25FF],  // Geometric Shapes
+            [0x2600, 0x26FF],  // Miscellaneous Symbols
+            [0x2700, 0x27BF],  // Dingbats
+            [0x27C0, 0x27EF],  // Miscellaneous Mathematical Symbols-A
+            [0x27F0, 0x27FF],  // Supplemental Arrows-A
+            [0x2800, 0x28FF],  // Braille Patterns
+            [0x2900, 0x297F],  // Supplemental Arrows-B
+            [0x2980, 0x29FF],  // Miscellaneous Mathematical Symbols-B
+            [0x2A00, 0x2AFF],  // Supplemental Mathematical Operators
+            [0x2B00, 0x2BFF]   // Miscellaneous Symbols and Arrows
+        ];
+
+        function getRandomUnicodeChar() {
+            const range = unicodeRanges[Math.floor(Math.random() * unicodeRanges.length)];
+            return String.fromCharCode(Math.floor(Math.random() * (range[1] - range[0] + 1) + range[0]));
+        }
+
+        function encrypt(text) {
+            let encryptedText = '';
+            let key = {};
+            
+            for (let char of text) {
+                if (!key[char]) {
+                    key[char] = getRandomUnicodeChar();
+                }
+                encryptedText += key[char];
+            }
+            
+            return { encryptedText, key };
+        }
+
+        function showElement(element) {
+            element.classList.remove('hidden');
+            element.classList.add('fade-in');
+        }
+
+        encryptBtn.addEventListener('click', () => {
+            const { encryptedText: encrypted, key } = encrypt(message.value);
+            encryptedText.textContent = encrypted;
+            decryptionKey.textContent = JSON.stringify(key);
+            
+            showElement(encryptedOutput);
+            showElement(keyOutput);
+            showElement(copyEncrypted);
+            showElement(copyKey);
+            showElement(shareBtn);
+        });
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard!');
+            }, (err) => {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        copyEncrypted.addEventListener('click', () => {
+            copyToClipboard(encryptedText.textContent);
+        });
+
+        copyKey.addEventListener('click', () => {
+            copyToClipboard(decryptionKey.textContent);
+        });
+
+        shareBtn.addEventListener('click', () => {
+            const shareUrl = `${window.location.origin}${window.location.pathname}?encrypted=${encodeURIComponent(encryptedText.textContent)}`;
+            copyToClipboard(shareUrl);
+            alert('Shareable link copied to clipboard!');
+        });
+
+        // Check for shared encrypted message in URL
+        window.addEventListener('load', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedEncrypted = urlParams.get('encrypted');
+            if (sharedEncrypted) {
+                encryptedText.textContent = sharedEncrypted;
+                showElement(encryptedOutput);
+                showElement(copyEncrypted);
+                message.value = "Encrypted message received. Enter the decryption key to reveal the original message.";
+            }
+        });
+    </script>
+</body>
+</html>
